@@ -64,12 +64,27 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = Gameplay)
 	uint32 bUsingMotionControllers : 1;
 
-protected:
 	
+
+protected:
+
 	/** Fires a projectile. */
 	void OnFire();
-
+	
+	/** function that calls Fire in the Server  . */
+	UFUNCTION(Server, Reliable, WithValidation)
+	void ServerFire(const FVector& _vPos, const FVector& _vSize);
+	
 	void Fire(const FVector& _vPos, const FVector& _vSize);
+	
+	UFUNCTION(NetMultiCast, unreliable)
+	void MultiCastShootEffects();
+
+
+	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
+	
+	
+	
 
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);

@@ -11,6 +11,8 @@
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "DrawDebugHelpers.h"
+#include "GameFramework/DamageType.h"
+#include "NSPlayerState.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -98,6 +100,8 @@ void ANSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ANSCharacter::LookUpAtRate);
 }
 
+/*Fire Zone*/
+
 void ANSCharacter::OnFire()
 {
 	// try and play the sound if specified
@@ -126,15 +130,95 @@ void ANSCharacter::OnFire()
 	pController->DeprojectScreenPositionToWorld(vScreenSize.X * 0.5f, vScreenSize.Y * 0.5f, vCrossPos, vCrossDir);
 
 	vCrossDir *= 1000.f;
-	Fire(vCrossPos, vCrossDir);
-
+	//Fire(vCrossPos, vCrossDir);
+	ServerFire(vCrossPos, vCrossDir);
 }
 
+bool ANSCharacter::ServerFire_Validate(const FVector& _vPos, const FVector& _vSize) //this function is used to validate the server call
+{
+	FVector vDist = GetActorLocation() - _vPos;
+	return vDist.SizeSquared() < 200.f * 200.f;
+}
+void ANSCharacter::ServerFire_Implementation(const FVector& _vPos, const FVector& _vSize)
+{
+	Fire(_vPos, _vSize);
+	MultiCastShootEffects();
+}
 
 void ANSCharacter::Fire(const FVector& _vPos, const FVector& _vSize)
 {
 	DrawDebugLine(GetWorld(), _vPos, _vPos + _vSize, FColor::Red, true, 10.f, 0, 5.f);
+
+
+	FHitResult HitResult;
+	FCollisionObjectQueryParams ObjQuery;
+	FCollisionQueryParams ColQuery;
+	ColQuery.AddIgnoredActor(this);
+	ObjQuery.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	GetWorld()->LineTraceSingleByObjectType(HitResult, _vPos, _vPos + _vSize, ObjQuery, ColQuery);
+	if (HitResult.bBlockingHit)
+	{
+		ANSCharacter* pOther = Cast<ANSCharacter>(HitResult.GetActor());
+
+		if (pOther)
+		{
+			FDamageEvent oEvent(UDamageType::StaticClass());
+			pOther->TakeDamage(10.f, oEvent, GetController(), this);
+		}
+	}
 }
+
+float ANSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	ANSPlayerState* pPlayerState = Cast<ANSPlayerState>(GetPlayerState());
+
+	if (GetLocalRole() == ROLE_Authority) //Checkear que solo el Server puede hacer esto
+	{
+		if (pPlayerState && pPlayerState->m_fHealth > 0.f)
+		{
+			pPlayerState->m_fHealth -= Damage;
+
+			if (pPlayerState->m_fHealth <= 0.f)
+			{
+				pPlayerState->m_uiDeaths++;
+
+				ANSCharacter* pOtherChar = Cast<ANSCharacter>(DamageCauser);
+				ANSPlayerState* pOtherPlayerState = pOtherChar ? Cast<ANSPlayerState>(pOtherChar->GetPlayerState()) : nullptr;
+				if (pOtherPlayerState)
+				{
+					pOtherPlayerState->Score += 1.f;
+				}
+
+			}
+		}
+	}
+	return Damage;
+}
+
+void ANSCharacter::MultiCastShootEffects_Implementation()
+{
+	// try and play the sound if specified
+	if (FireSound != NULL)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+	}
+
+	// try and play a firing animation if specified
+	if (TP_FireAnimation != NULL)
+	{
+		// Get the animation object for the mesh
+		UAnimInstance* AnimInstance = GetMesh()->GetAnimInstance();
+		if (AnimInstance != NULL)
+		{
+			AnimInstance->Montage_Play(TP_FireAnimation, 1.f);
+		}
+	}
+}
+
+/*Fire Zone End*/
+
 
 void ANSCharacter::MoveForward(float Value)
 {
