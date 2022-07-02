@@ -11,6 +11,8 @@
 #include "MotionControllerComponent.h"
 #include "XRMotionControllerBase.h" // for FXRMotionControllerBase::RightHandSourceId
 #include "DrawDebugHelpers.h"
+#include "GameFramework/DamageType.h"
+#include "NSPlayerState.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -98,7 +100,80 @@ void ANSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 	PlayerInputComponent->BindAxis("LookUpRate", this, &ANSCharacter::LookUpAtRate);
 }
 
+/*Fire Zone*/
+
 void ANSCharacter::OnFire()
+{
+
+
+	//Check the position and dir of the cross and convert into WorldSpace Position & Dir
+	FVector vCrossPos;
+	FVector vCrossDir;
+
+	APlayerController* pController = Cast<APlayerController>(GetController());
+	FVector2D vScreenSize = GEngine->GameViewport->Viewport->GetSizeXY();
+	pController->DeprojectScreenPositionToWorld(vScreenSize.X * 0.5f, vScreenSize.Y * 0.5f, vCrossPos, vCrossDir);
+
+	vCrossDir *= 1000.f;
+	//Fire(vCrossPos, vCrossDir);
+	ServerFire(vCrossPos, vCrossDir);
+}
+
+bool ANSCharacter::ServerFire_Validate(const FVector& _vPos, const FVector& _vSize) //this function is used to validate the server call
+{
+	FVector vDist = GetActorLocation() - _vPos;
+	return vDist.SizeSquared() < 200.f * 200.f;
+}
+void ANSCharacter::ServerFire_Implementation(const FVector& _vPos, const FVector& _vSize)
+{
+	Fire(_vPos, _vSize);
+	MultiCastShootEffects();
+}
+
+void ANSCharacter::Fire(const FVector& _vPos, const FVector& _vSize)
+{
+	DrawDebugLine(GetWorld(), _vPos, _vPos + _vSize, FColor::Red, true, 10.f, 0, 5.f);
+
+
+	FHitResult HitResult;
+	FCollisionObjectQueryParams ObjQuery;
+	FCollisionQueryParams ColQuery;
+	ColQuery.AddIgnoredActor(this);
+	ObjQuery.AddObjectTypesToQuery(ECC_GameTraceChannel1);
+	GetWorld()->LineTraceSingleByObjectType(HitResult, _vPos, _vPos + _vSize, ObjQuery, ColQuery);
+	if (HitResult.bBlockingHit)
+	{
+		ANSCharacter* pOther = Cast<ANSCharacter>(HitResult.GetActor());
+
+		if (pOther)
+		{
+			FDamageEvent oEvent(UDamageType::StaticClass());
+			pOther->TakeDamage(10.f, oEvent, GetController(), this);
+		}
+	}
+}
+
+float ANSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser)
+{
+	Super::TakeDamage(Damage, DamageEvent, EventInstigator, DamageCauser);
+
+	ANSPlayerState* pPlayerState = Cast<ANSPlayerState>(GetPlayerState());
+
+	if (GetLocalRole() == ROLE_Authority) //Checkear que solo el Server puede hacer esto
+	{
+
+		if (pPlayerState)
+		{
+			if (pPlayerState->m_fHealth > 0.f)
+			{
+				pPlayerState->m_fHealth -= Damage;
+			}
+		}
+	}
+	return Damage;
+}
+
+void ANSCharacter::MultiCastShootEffects_Implementation()
 {
 	// try and play the sound if specified
 	if (FireSound != NULL)
@@ -116,25 +191,10 @@ void ANSCharacter::OnFire()
 			AnimInstance->Montage_Play(FP_FireAnimation, 1.f);
 		}
 	}
-
-	//Check the position and dir of the cross and convert into WorldSpace Position & Dir
-	FVector vCrossPos;
-	FVector vCrossDir;
-
-	APlayerController* pController = Cast<APlayerController>(GetController());
-	FVector2D vScreenSize = GEngine->GameViewport->Viewport->GetSizeXY();
-	pController->DeprojectScreenPositionToWorld(vScreenSize.X * 0.5f, vScreenSize.Y * 0.5f, vCrossPos, vCrossDir);
-
-	vCrossDir *= 1000.f;
-	Fire(vCrossPos, vCrossDir);
-
 }
 
+/*Fire Zone End*/
 
-void ANSCharacter::Fire(const FVector& _vPos, const FVector& _vSize)
-{
-	DrawDebugLine(GetWorld(), _vPos, _vPos + _vSize, FColor::Red, true, 10.f, 0, 5.f);
-}
 
 void ANSCharacter::MoveForward(float Value)
 {

@@ -4,6 +4,7 @@
 #include "NSHUD.h"
 #include "NSCharacter.h"
 #include "UObject/ConstructorHelpers.h"
+#include "NSPlayerState.h"
 
 ANSGameMode::ANSGameMode()
 	: Super()
@@ -14,4 +15,6 @@ ANSGameMode::ANSGameMode()
 
 	// use our custom HUD class
 	HUDClass = ANSHUD::StaticClass();
+	// use our custom player state class
+	PlayerStateClass = ANSPlayerState::StaticClass();
 }
