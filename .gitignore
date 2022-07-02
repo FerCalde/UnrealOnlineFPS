@@ -1,3 +1,15 @@
+**/.vs/
+**/Debug/
+**/Release/
+**/x86/
+**/x64/
+**/bin/
+**/int/
+**/WindowsNoEditor/
+**/Intermediate/
+**/Build/
+**/Saved/
+
 # Visual Studio 2015 user specific files
 .vs/
 
