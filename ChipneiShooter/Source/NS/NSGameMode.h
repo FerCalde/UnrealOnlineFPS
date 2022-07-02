@@ -6,6 +6,8 @@
 #include "GameFramework/GameModeBase.h"
 #include "NSGameMode.generated.h"
 
+class ANSCharacter;
+
 UCLASS(minimalapi)
 class ANSGameMode : public AGameModeBase
 {
@@ -13,6 +15,8 @@ class ANSGameMode : public AGameModeBase
 
 public:
 	ANSGameMode();
+
+	void Respawn(ANSCharacter* _pChar);
 };
 
 
