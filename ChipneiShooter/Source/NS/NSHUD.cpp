@@ -40,17 +40,16 @@ void ANSHUD::DrawHUD()
 
 	// draw the health of the player
 	ANSCharacter* pChar = Cast<ANSCharacter>(UGameplayStatics::GetPlayerPawn(GetWorld(), 0));
-	ANSPlayerState* pPlayerState = pChar ? Cast<ANSPlayerState>(pChar->GetPlayerState()) : nullptr;
+	ANSPlayerState* pPlayerState = pChar ? Cast<ANSPlayerState>(pChar->GetPlayerState()) : nullptr; //EsLoMismo!//if(pChar){ANSPlayerState* pPlayerState = Cast<ANSPlayerState>(pChar->GetPlayerState());}
 
-	//if (pChar)
-	//{
-	//	ANSPlayerState* pPlayerState = Cast<ANSPlayerState>(pChar->GetPlayerState());
-	//}
 	if (pPlayerState)
 	{
 		FString sHealth = FString::Printf(TEXT("Health: %f"), pPlayerState->m_fHealth);
-
 		DrawText(sHealth, FColor::Yellow, 50.0f, 50.0f);
+		FString sDeaths = FString::Printf(TEXT("Death: %i"), pPlayerState->m_uiDeaths);
+		DrawText(sDeaths, FColor::Red, 50.0f, 100.0f);
+		FString sScore = FString::Printf(TEXT("Kills: %i"), pPlayerState->Score);
+		DrawText(sScore, FColor::Green, 50.0f, 200.0f);
 	}
 
 }

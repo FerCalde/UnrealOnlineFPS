@@ -104,7 +104,22 @@ void ANSCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputC
 
 void ANSCharacter::OnFire()
 {
+	// try and play the sound if specified
+	if (FireSound != NULL)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, FireSound, GetActorLocation());
+	}
 
+	// try and play a firing animation if specified
+	if (FP_FireAnimation != NULL)
+	{
+		// Get the animation object for the arms mesh
+		UAnimInstance* AnimInstance = FP_Mesh->GetAnimInstance();
+		if (AnimInstance != NULL)
+		{
+			AnimInstance->Montage_Play(FP_FireAnimation, 1.f);
+		}
+	}
 
 	//Check the position and dir of the cross and convert into WorldSpace Position & Dir
 	FVector vCrossPos;
@@ -161,12 +176,21 @@ float ANSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AC
 
 	if (GetLocalRole() == ROLE_Authority) //Checkear que solo el Server puede hacer esto
 	{
-
-		if (pPlayerState)
+		if (pPlayerState && pPlayerState->m_fHealth > 0.f)
 		{
-			if (pPlayerState->m_fHealth > 0.f)
+			pPlayerState->m_fHealth -= Damage;
+
+			if (pPlayerState->m_fHealth <= 0.f)
 			{
-				pPlayerState->m_fHealth -= Damage;
+				pPlayerState->m_uiDeaths++;
+
+				ANSCharacter* pOtherChar = Cast<ANSCharacter>(DamageCauser);
+				ANSPlayerState* pOtherPlayerState = pOtherChar ? Cast<ANSPlayerState>(pOtherChar->GetPlayerState()) : nullptr;
+				if (pOtherPlayerState)
+				{
+					pOtherPlayerState->Score += 1.f;
+				}
+
 			}
 		}
 	}

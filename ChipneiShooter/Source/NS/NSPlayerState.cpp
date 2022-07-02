@@ -6,4 +6,5 @@ void ANSPlayerState::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLi
 {
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 	DOREPLIFETIME(ANSPlayerState, m_fHealth)
+	DOREPLIFETIME(ANSPlayerState, m_uiDeaths)
 }

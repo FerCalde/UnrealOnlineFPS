@@ -18,6 +18,9 @@ public:
 	UPROPERTY(Replicated)
 	float m_fHealth = 100.f;
 	
+	UPROPERTY(Replicated)
+	uint8 m_uiDeaths = 0u;
+	
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
