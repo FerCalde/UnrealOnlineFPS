@@ -191,6 +191,8 @@ float ANSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AC
 				{
 					pOtherPlayerState->Score += 1.f;
 				}
+				
+				MultiCastRagdoll();
 				//in 3 seconds	
 				FTimerHandle oTimer;
 				GetWorldTimerManager().SetTimer<ANSCharacter>(oTimer, this, &ANSCharacter::Respawn, 3.f, false);
@@ -236,7 +238,16 @@ void ANSCharacter::MultiCastShootEffects_Implementation()
 	}
 }
 
+void ANSCharacter::MultiCastRagdoll_Implementation()
+{
+	GetMesh()->SetPhysicsBlendWeight(1.f);
+	GetMesh()->SetSimulatePhysics(true);
+	GetMesh()->SetCollisionProfileName("Ragdoll");
+}
+
+
 /*Fire Zone End*/
+
 
 
 void ANSCharacter::MoveForward(float Value)

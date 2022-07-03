@@ -77,15 +77,17 @@ protected:
 	
 	void Fire(const FVector& _vPos, const FVector& _vSize);
 	
-	UFUNCTION(NetMultiCast, unreliable)
-	void MultiCastShootEffects();
-
 
 	virtual float TakeDamage(float Damage, struct FDamageEvent const& DamageEvent, AController* EventInstigator, AActor* DamageCauser) override;
 	
 	void Respawn();
 	
+	UFUNCTION(NetMultiCast, unreliable)
+	void MultiCastShootEffects();
 
+	UFUNCTION(NetMultiCast, Reliable)
+	void MultiCastRagdoll();
+	
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);
 
