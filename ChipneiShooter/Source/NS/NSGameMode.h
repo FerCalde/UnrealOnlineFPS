@@ -37,7 +37,10 @@ public:
 
 
 	virtual void BeginPlay() override;
+	virtual void Tick(float DeltaSeconds) override;
+	virtual void PostLogin(APlayerController* _pPC) override; //"BeginPlay" de na mas conectarse un jugador 
 
+	void Spawn(ANSCharacter* _pCharacter);
 	void Respawn(ANSCharacter* _pChar);
 
 

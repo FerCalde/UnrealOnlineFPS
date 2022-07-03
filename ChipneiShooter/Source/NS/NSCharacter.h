@@ -66,6 +66,10 @@ public:
 	uint32 bUsingMotionControllers : 1;
 
 	
+public :
+	/*Function that set the team of the player*/
+	UFUNCTION(NetMulticast, Reliable)
+		void SetTeam(ETeam _eNewTeam);
 
 protected:
 
@@ -89,10 +93,7 @@ protected:
 	UFUNCTION(NetMultiCast, Reliable)
 	void MultiCastRagdoll();
 	
-	/*Function that set the team of the player*/
-	UFUNCTION(NetMulticast, Reliable)
-	void SetTeam(ETeam _eNewTeam);
-
+	
 	class UMaterialInstanceDynamic* m_pDynamicMat = nullptr;
 	
 	/** Handles moving forward/backward */
