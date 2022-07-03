@@ -7,6 +7,7 @@
 #include "NSGameMode.generated.h"
 
 class ANSCharacter;
+class ANSSpawnPoint;
 
 UENUM(BlueprintType)
 enum class EWaveState : uint8
@@ -34,7 +35,19 @@ class ANSGameMode : public AGameModeBase
 public:
 	ANSGameMode();
 
+
+	virtual void BeginPlay() override;
+
 	void Respawn(ANSCharacter* _pChar);
+
+
+private:
+	//Team Control
+	TArray<ANSCharacter*> m_tTeam_Red;
+	TArray<ANSCharacter*> m_tTeam_Blue;
+	TArray<ANSSpawnPoint*> m_tSpawnPoint_Red;
+	TArray<ANSSpawnPoint*> m_tSpawnPoint_Blue;
+	TArray<ANSCharacter*> m_tToBeSpawned;
 };
 
 
