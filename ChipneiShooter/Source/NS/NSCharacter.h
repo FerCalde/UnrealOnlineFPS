@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
+#include "NSPlayerState.h"
 #include "NSCharacter.generated.h"
 
 class UInputComponent;
@@ -87,6 +88,12 @@ protected:
 
 	UFUNCTION(NetMultiCast, Reliable)
 	void MultiCastRagdoll();
+	
+	/*Function that set the team of the player*/
+	UFUNCTION(NetMulticast, Reliable)
+	void SetTeam(ETeam _eNewTeam);
+
+	class UMaterialInstanceDynamic* m_pDynamicMat = nullptr;
 	
 	/** Handles moving forward/backward */
 	void MoveForward(float Val);

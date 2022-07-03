@@ -8,6 +8,24 @@
 
 class ANSCharacter;
 
+UENUM(BlueprintType)
+enum class EWaveState : uint8
+{
+	WaitingToStart,
+	WaveInProgress,
+	WaitingToComplete,
+	GameOver
+};
+
+UENUM(BlueprintType)
+enum class ETeam : uint8
+{
+	None,
+	Team_RED,
+	Team_BLUE
+};
+
+
 UCLASS(minimalapi)
 class ANSGameMode : public AGameModeBase
 {
