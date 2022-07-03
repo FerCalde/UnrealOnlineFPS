@@ -14,6 +14,7 @@
 #include "GameFramework/DamageType.h"
 #include "NSPlayerState.h"
 #include "NSGameMode.h"
+#include "Materials/MaterialInstanceDynamic.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -71,6 +72,16 @@ void ANSCharacter::BeginPlay()
 	FP_Gun->AttachToComponent(FP_Mesh, FAttachmentTransformRules(EAttachmentRule::SnapToTarget, true), TEXT("GripPoint"));
 	GetMesh()->SetOwnerNoSee(true);
 	TP_Gun->SetOwnerNoSee(true);
+
+	//Test the team setup 
+	/*if (GetLocalRole() != ROLE_Authority)
+	{
+		SetTeam(ETeam::Team_BLUE);
+	}
+	else
+	{
+		SetTeam(ETeam::Team_RED);
+	}*/
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -191,7 +202,7 @@ float ANSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AC
 				{
 					pOtherPlayerState->Score += 1.f;
 				}
-				
+
 				MultiCastRagdoll();
 				//in 3 seconds	
 				FTimerHandle oTimer;
@@ -210,7 +221,7 @@ void ANSCharacter::Respawn()
 		if (pPlayerState)
 		{
 			pPlayerState->m_fHealth = 100.f;
-			
+
 			Cast<ANSGameMode>(GetWorld()->GetAuthGameMode())->Respawn(this);
 			Destroy(true, true);
 		}
@@ -249,6 +260,33 @@ void ANSCharacter::MultiCastRagdoll_Implementation()
 /*Fire Zone End*/
 
 
+
+void ANSCharacter::SetTeam_Implementation(ETeam _eNewTeam)
+{
+	FLinearColor oColor;
+	switch (_eNewTeam)
+	{
+	case ETeam::Team_RED:
+		oColor = FLinearColor::Red;
+		break;
+
+	case ETeam::Team_BLUE:
+		oColor = FLinearColor::Blue;
+		break;
+
+	case ETeam::None:
+		oColor = FLinearColor::White;
+		break;
+
+	}
+	if (!m_pDynamicMat)
+	{
+		m_pDynamicMat = UMaterialInstanceDynamic::Create(GetMesh()->GetMaterial(0), this);
+		m_pDynamicMat->SetVectorParameterValue(TEXT("BodyColor"), oColor);
+		GetMesh()->SetMaterial(0, m_pDynamicMat);
+		FP_Mesh->SetMaterial(0, m_pDynamicMat);
+	}
+}
 
 void ANSCharacter::MoveForward(float Value)
 {

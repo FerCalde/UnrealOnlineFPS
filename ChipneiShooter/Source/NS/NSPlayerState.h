@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/PlayerState.h"
+#include "NSGameMode.h"
 #include "NSPlayerState.generated.h"
 
 /**
@@ -20,6 +21,10 @@ public:
 	
 	UPROPERTY(Replicated)
 	uint8 m_uiDeaths = 0u;
+
+	UPROPERTY(Replicated)
+	ETeam m_eTeam = ETeam::Team_BLUE;
+	
 	
 public:
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
