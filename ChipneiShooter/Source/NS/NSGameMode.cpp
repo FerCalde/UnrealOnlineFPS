@@ -18,3 +18,18 @@ ANSGameMode::ANSGameMode()
 	// use our custom player state class
 	PlayerStateClass = ANSPlayerState::StaticClass();
 }
+
+void ANSGameMode::Respawn(ANSCharacter* _pChar)
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		AController* pController = _pChar->GetController();
+		_pChar->DetachFromControllerPendingDestroy();
+		FTransform oTrans = _pChar->GetTransform();
+		ANSCharacter* pNewChar = Cast<ANSCharacter>(GetWorld()->SpawnActor(DefaultPawnClass, &oTrans));
+		if (pNewChar)
+		{
+			pController->Possess(pNewChar);
+		}
+	}
+}

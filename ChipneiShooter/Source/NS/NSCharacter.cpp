@@ -13,6 +13,7 @@
 #include "DrawDebugHelpers.h"
 #include "GameFramework/DamageType.h"
 #include "NSPlayerState.h"
+#include "NSGameMode.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogFPChar, Warning, All);
 
@@ -190,11 +191,29 @@ float ANSCharacter::TakeDamage(float Damage, FDamageEvent const& DamageEvent, AC
 				{
 					pOtherPlayerState->Score += 1.f;
 				}
-
+				//in 3 seconds	
+				FTimerHandle oTimer;
+				GetWorldTimerManager().SetTimer<ANSCharacter>(oTimer, this, &ANSCharacter::Respawn, 3.f, false);
 			}
 		}
 	}
 	return Damage;
+}
+
+void ANSCharacter::Respawn()
+{
+	if (GetLocalRole() == ROLE_Authority)
+	{
+		ANSPlayerState* pPlayerState = Cast<ANSPlayerState>(GetPlayerState());
+		if (pPlayerState)
+		{
+			pPlayerState->m_fHealth = 100.f;
+			
+			Cast<ANSGameMode>(GetWorld()->GetAuthGameMode())->Respawn(this);
+			Destroy(true, true);
+		}
+	}
+
 }
 
 void ANSCharacter::MultiCastShootEffects_Implementation()
